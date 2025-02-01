@@ -4,24 +4,6 @@ This library provides functionality for processing and transforming experimental
 Its intended to assist in the design of immune assay panels, by providing a structured way to find combinations of cell types, stimuli and reagent
 readouts that are most informative because they show a robust response and wide variance accross a patient population.
 
-### Immune Atlas Hackathon Team
-
-This work came out of the Immune Atlas Hackathon Team
-at the The Immune Health Hackathon 2025. Sponsored by:
-
-- The Colton Consortium
-- The Institute for Immunology and Immune Health (I3H)
-- Penn Institute for Biomedical Informatics
-
-### Team Members
-
-- Seljuq Haider
-- Kelvin Koser
-- Jen Shi
-- Jim Snavely
-- Kevin Wang
-- Charles Zheng
-
 ### Data Filtering
 
 - `filter_by_group(df, by_filter_columns)`: Filter dataframe rows matching specified column values
@@ -64,3 +46,21 @@ pull the latest image from docker hub with the following command:
 ```
 docker pull ludflu/i3h-response-and-variance
 ```
+
+### Immune Atlas Hackathon Team
+
+This work came out of the Immune Atlas Hackathon Team
+at the The Immune Health Hackathon 2025. Sponsored by:
+
+- The Colton Consortium
+- The Institute for Immunology and Immune Health (I3H)
+- Penn Institute for Biomedical Informatics
+
+### Team Members
+
+- Seljuq Haider
+- Kelvin Koser
+- Jen Shi
+- Jim Snavely
+- Kevin Wang
+- Charles Zheng
