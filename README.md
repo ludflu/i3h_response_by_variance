@@ -50,3 +50,17 @@ You can run the pytest with the following command:
 ```
 make test
 ```
+
+## Docker Image
+
+You can build a docker image with the following command:
+
+```
+make docker-build
+```
+
+pull the latest image from docker hub with the following command:
+
+```
+docker pull ludflu/i3h-response-and-variance
+```
