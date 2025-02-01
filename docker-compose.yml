@@ -1,0 +1,11 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - dev.env
+    volumes:
+      - .:/app
+      - ./data_testing:/service/data
+    working_dir: /app
