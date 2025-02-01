@@ -1,0 +1,8 @@
+filename,population,uniquePopulationName,parentPopulation,channel,reagent,Condition,Donor,Gender,Species,statistic,value
+R2W1_TESTING_Cy_F_TNFa.fcs,Neutrophils,Neutrophils,Non-Basophils,La139Di,pSTAT3,Basal,TESTING,F,Cyno,median,35.2104280090332
+R2W1_TESTING_Cy_F_TNFa.fcs,Neutrophils,Neutrophils,Non-Basophils,Nd144Di,pMAPKAPK2,Basal,TESTING,F,Cyno,median,8.385713386535645
+R2W1_TESTING_Cy_F_TNFa.fcs,Neutrophils,Neutrophils,Non-Basophils,Nd145Di,pCREB,Basal,TESTING,F,Cyno,median,25.16508560180664
+R2W1_TESTING_Cy_F_TNFa.fcs,Neutrophils,Neutrophils,Non-Basophils,Nd146Di,pPLCg2,TNFa,TESTING,F,Cyno,median,9.155274486541748
+R2W1_TESTING_Cy_F_TNFa.fcs,Neutrophils,Neutrophils,Non-Basophils,Sm147Di,pSTAT1,TNFa,TESTING,F,Cyno,median,30.573655700683594
+R2W1_TESTING_Cy_F_TNFa.fcs,Neutrophils,Neutrophils,Non-Basophils,Sm149Di,pSTAT5,Basal,TESTING,F,Cyno,median,14.950460815429688
+R2W1_TESTING_Cy_F_TNFa.fcs,Neutrophils,Neutrophils,Non-Basophils,Sm150Di,pS6,TNFa,TESTING,F,Cyno,median,58.89833450317383

@@ -1,5 +1,5 @@
 [project]
-name = "response-by-variance-etl"
+name = "response_by_variance"
 version = "0.1.0"
 description = ""
 authors = [
@@ -12,7 +12,13 @@ dependencies = [
     "pytest (>=8.3.4,<9.0.0)"
 ]
 
+packages = [
+    { include = "response_by_variance_etl" },
+]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+
+
