@@ -1,7 +1,6 @@
 import polars as pl
-import itertools
 
-filters = {
+initial_filters = {
     "Species": "Human",
 }
 
@@ -26,16 +25,24 @@ keep_columns = [
 group_by = ["population", "reagent", "Condition"]
 
 
-def filter_data(df: pl.DataFrame) -> pl.DataFrame:
-    return df.filter(pl.col("Species") == filters["Species"]).drop_nans("value")
-
-
 def filter_by_group(
     df: pl.DataFrame, by_filter_columns: dict[str, str]
 ) -> pl.DataFrame:
     for column, value in by_filter_columns.items():
         df = df.filter(pl.col(column) == value)
     return df
+
+
+def filter_by_group_negate(
+    df: pl.DataFrame, by_filter_columns: dict[str, str]
+) -> pl.DataFrame:
+    for column, value in by_filter_columns.items():
+        df = df.filter(pl.col(column) != value)
+    return df
+
+
+def filter_data(df: pl.DataFrame) -> pl.DataFrame:
+    return filter_by_group(df.drop_nans("value"), initial_filters)
 
 
 def remove_outliers(
@@ -52,14 +59,17 @@ def remove_outliers(
 
 
 def normalize_by_basal(df: pl.DataFrame) -> pl.DataFrame:
-    base = df.filter(pl.col("Condition") == basal_filters["Condition"])
-    base = base.rename({"value": "basal_value"}).drop("Condition")
-    non_base = df.filter(pl.col("Condition") != basal_filters["Condition"])
-    together = base.join(non_base, how="inner", on=normalization_join)
-    together = together.with_columns(
+    base = (
+        filter_by_group(df, basal_filters)
+        .rename({"value": "basal_value"})
+        .drop("Condition")
+    )
+
+    non_base = filter_by_group_negate(df, basal_filters)
+
+    return base.join(non_base, how="inner", on=normalization_join).with_columns(
         (pl.col("value") - pl.col("basal_value")).alias("normalized_value"),
     )
-    return together
 
 
 def group_by_and_agg(df: pl.DataFrame) -> pl.DataFrame:
@@ -78,10 +88,6 @@ def group_by_and_agg(df: pl.DataFrame) -> pl.DataFrame:
 
 def load_data(file_path: str) -> pl.DataFrame:
     return pl.read_csv(file_path)
-
-
-def transform_data(df: pl.DataFrame) -> pl.DataFrame:
-    return df.filter(pl.col("age") > 18)
 
 
 def save_data(df: pl.DataFrame, file_path: str) -> None:
