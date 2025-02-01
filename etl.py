@@ -17,38 +17,46 @@ def filter_by_group_negate(
     return df
 
 
-def filter_data(df: pl.DataFrame, initial_filters: dict[str, str]) -> pl.DataFrame:
-    return filter_by_group(df.drop_nans("value"), initial_filters)
+def filter_data(
+    df: pl.DataFrame, initial_filters: dict[str, str], value_column="value"
+) -> pl.DataFrame:
+    return filter_by_group(df.drop_nans(value_column), initial_filters)
 
 
 def remove_outliers(
-    df: pl.DataFrame, by_grouping_columns: list[str], num_std_dev: int
+    df: pl.DataFrame,
+    by_grouping_columns: list[str],
+    num_std_dev: int,
+    value_column="value",
 ) -> pl.DataFrame:
     grouped_std_var = (
         df.group_by(by_grouping_columns)
-        .agg(pl.col("value").std())
-        .rename({"value": "std"})
+        .agg(pl.col(value_column).std())
+        .rename({value_column: "std"})
     )
 
     return df.join(grouped_std_var, how="inner", on=by_grouping_columns).filter(
-        (pl.col("value") <= pl.col("std") * num_std_dev)
-        & (pl.col("value") >= -pl.col("std") * num_std_dev)
+        (pl.col(value_column) <= pl.col("std") * num_std_dev)
+        & (pl.col(value_column) >= -pl.col("std") * num_std_dev)
     )
 
 
 def normalize_by_basal(
-    df: pl.DataFrame, basal_filters: dict[str, str], normalization_join: list[str]
+    df: pl.DataFrame,
+    basal_filters: dict[str, str],
+    normalization_join: list[str],
+    value_column="value",
 ) -> pl.DataFrame:
     base = (
         filter_by_group(df, basal_filters)
-        .rename({"value": "basal_value"})
+        .rename({value_column: "basal_value"})
         .drop("Condition")
     )
 
     non_base = filter_by_group_negate(df, basal_filters)
 
     return base.join(non_base, how="inner", on=normalization_join).with_columns(
-        (pl.col("value") - pl.col("basal_value")).alias("normalized_value"),
+        (pl.col(value_column) - pl.col("basal_value")).alias("normalized_value"),
     )
 
 
@@ -73,9 +81,11 @@ def response_and_variance_transform(
     normalization_join: list[str],
     keep_columns: list[str],
     aggregation_columns: list[str],
+    std_dev_count: int = 3,
+    value_column: str = "value",
 ):
-    df = filter_data(input_frame, initial_filters)
-    df = normalize_by_basal(df, basal_filters, normalization_join)
-    df = remove_outliers(df, aggregation_columns, num_std_dev=3)
+    df = filter_data(input_frame, initial_filters, value_column)
+    df = normalize_by_basal(df, basal_filters, normalization_join, value_column)
+    df = remove_outliers(df, aggregation_columns, num_std_dev=std_dev_count)
     df = group_by_and_agg(df, aggregation_columns)
     return df.select(keep_columns)
