@@ -1,13 +1,13 @@
 FROM python:3.11.0-slim-buster
 
 ENV PYTHONDONTWRITEBYTECODE 1 \
-    PYTHONUNBUFFERED 1
+    PYTHONUNBUFFERED 1 \
+    PATH "/root/.local/bin:$PATH"
 
 RUN apt-get update \
     && apt-get install curl -y \
     && curl -sSL https://install.python-poetry.org | python - --version 2.0.0
 
-ENV PATH="/root/.local/bin:$PATH"
 
 WORKDIR /usr/app
 
