@@ -17,10 +17,7 @@ COPY response_by_variance ./response_by_variance
 
 RUN pip install --upgrade pip && pip install .
 
-
-
 EXPOSE 5000
 
-#ENTRYPOINT ["poetry", "run", "python", "entry.py"]
 ENTRYPOINT ["python", "entry.py"]
 
