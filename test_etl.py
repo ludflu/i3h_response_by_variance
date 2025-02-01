@@ -1,4 +1,3 @@
-import pytest
 import polars as pl
 from etl import (
     filter_by_group,
@@ -7,8 +6,6 @@ from etl import (
     remove_outliers,
     normalize_by_basal,
     group_by_and_agg,
-    load_data,
-    save_data,
 )
 
 
@@ -75,17 +72,3 @@ def test_group_by_and_agg():
     assert grouped.shape == (2, 5)
     assert "median" in grouped.columns
     assert "variance" in grouped.columns
-
-
-def test_load_and_save_data(tmp_path):
-    # Create test data
-    df = pl.DataFrame({"col1": [1, 2, 3], "col2": ["a", "b", "c"]})
-
-    # Save test data
-    test_file = tmp_path / "test.csv"
-    save_data(df, str(test_file))
-
-    # Load and verify
-    loaded_df = load_data(str(test_file))
-    assert loaded_df.shape == df.shape
-    assert loaded_df.columns == df.columns

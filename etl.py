@@ -66,47 +66,16 @@ def group_by_and_agg(df: pl.DataFrame, group_by: list[str]) -> pl.DataFrame:
     return med.join(var, how="inner", on=group_by)
 
 
-def load_data(file_path: str) -> pl.DataFrame:
-    return pl.read_csv(file_path)
-
-
-def save_data(df: pl.DataFrame, file_path: str) -> None:
-    df.write_csv(file_path)
-
-
-def main():
-    initial_filters = {
-        "Species": "Human",
-    }
-
-    basal_filters = {
-        "Condition": "Basal",
-    }
-
-    normalization_join = [
-        "population",
-        "reagent",
-        "Donor",
-    ]
-
-    keep_columns = [
-        "population",
-        "reagent",
-        "Condition",
-        "median",
-        "variance",
-    ]
-
-    group_by = ["population", "reagent", "Condition"]
-
-    df = load_data("sup.csv")
-    df = filter_data(df, initial_filters)
+def response_and_variance_transform(
+    input_frame: pl.DataFrame,
+    initial_filters: dict[str, str],
+    basal_filters: dict[str, str],
+    normalization_join: list[str],
+    keep_columns: list[str],
+    aggregation_columns: list[str],
+):
+    df = filter_data(input_frame, initial_filters)
     df = normalize_by_basal(df, basal_filters, normalization_join)
-    df = remove_outliers(df, group_by, num_std_dev=3)
-    df = group_by_and_agg(df, group_by)
-    df = df.select(keep_columns)
-    save_data(df, "data_normalized.csv")
-
-
-if __name__ == "__main__":
-    main()
+    df = remove_outliers(df, aggregation_columns, num_std_dev=3)
+    df = group_by_and_agg(df, aggregation_columns)
+    return df.select(keep_columns)
