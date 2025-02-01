@@ -22,15 +22,17 @@ def filter_data(df: pl.DataFrame, initial_filters: dict[str, str]) -> pl.DataFra
 
 
 def remove_outliers(
-    df: pl.DataFrame, by_grouping_columns: list[str], no_std_dev: int
+    df: pl.DataFrame, by_grouping_columns: list[str], num_std_dev: int
 ) -> pl.DataFrame:
-    grouped_std_var = df.group_by(by_grouping_columns).agg(
-        pl.col("value").std().alias("std")
+    grouped_std_var = (
+        df.group_by(by_grouping_columns)
+        .agg(pl.col("value").std())
+        .rename({"value": "std"})
     )
 
     return df.join(grouped_std_var, how="inner", on=by_grouping_columns).filter(
-        (pl.col("value") <= pl.col("std") * no_std_dev)
-        & (pl.col("value") >= -pl.col("std") * no_std_dev)
+        (pl.col("value") <= pl.col("std") * num_std_dev)
+        & (pl.col("value") >= -pl.col("std") * num_std_dev)
     )
 
 
@@ -100,7 +102,7 @@ def main():
     df = load_data("sup.csv")
     df = filter_data(df, initial_filters)
     df = normalize_by_basal(df, basal_filters, normalization_join)
-    df = remove_outliers(df, group_by, no_std_dev=3)
+    df = remove_outliers(df, group_by, num_std_dev=3)
     df = group_by_and_agg(df, group_by)
     df = df.select(keep_columns)
     save_data(df, "data_normalized.csv")
