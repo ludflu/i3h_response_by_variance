@@ -1,5 +1,5 @@
 import polars as pl
-from etl import (
+from response_by_variance.etl import (
     filter_by_group,
     filter_by_group_negate,
     filter_data,

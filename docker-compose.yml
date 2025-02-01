@@ -9,4 +9,5 @@ services:
       - dev.env
     volumes:
       - .:/app
+      - ./data_testing:/service/data
     working_dir: /app
