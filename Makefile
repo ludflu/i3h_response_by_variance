@@ -8,5 +8,5 @@ run:
 	docker compose up --build
 
 docker-build:
-	docker build -t i3h-response-and-variance .
-	
+	docker build -t ludflu/i3h-response-and-variance .
+	docker push ludflu/i3h-response-and-variance
