@@ -47,7 +47,19 @@ def main():
         keep_columns,
         aggregation_columns,
     )
-    output_frame.write_csv(f"{output_filepath}/output.csv")
+
+    med = output_frame.drop("variance")
+
+    medpivot = med.pivot(
+        on="population",
+        index=["reagent", "Condition"],
+        values="median",
+        # aggregate_function=pl.col("median").median(),
+    )
+    # print(medpivot)
+
+    # write the output to a csv file
+    medpivot.write_csv(f"{output_filepath}/output.csv")
 
 
 if __name__ == "__main__":
