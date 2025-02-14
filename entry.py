@@ -51,18 +51,7 @@ def main():
         aggregation_columns,
     )
 
-    medpop = avg_across_cell_populations(
-        output_frame, "median", "average_cell_response"
-    )
-    varpop = avg_across_cell_populations(
-        output_frame, "variance", "average_celltype_variance"
-    )
-
-    response_and_variance = medpop.join(
-        varpop, on=["reagent", "Condition"], how="inner"
-    ).sort(by=["average_cell_response", "average_celltype_variance"], descending=True)
-
-    response_and_variance.write_csv(f"{output_filepath}/output.csv")
+    output_frame.write_csv(f"{output_filepath}/output.csv")
 
 
 if __name__ == "__main__":

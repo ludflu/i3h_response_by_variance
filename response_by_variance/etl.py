@@ -86,6 +86,25 @@ def avg_across_cell_populations(
     return medpivot.drop(unique_populations)
 
 
+def summary_score(df: pl.DataFrame) -> pl.DataFrame:
+    medpop = avg_across_cell_populations(df, "median", "average_cell_response")
+    varpop = avg_across_cell_populations(df, "variance", "average_celltype_variance")
+
+    response_weight = 1
+    variance_weight = 0.5
+
+    return (
+        medpop.join(varpop, on=["reagent", "Condition"], how="inner")
+        .with_columns(
+            (
+                (pl.col("average_cell_response") * response_weight)
+                + (pl.col("average_celltype_variance") * variance_weight)
+            ).alias("cross_celltype_summary_score")
+        )
+        .drop(["average_cell_response", "average_celltype_variance"])
+    )
+
+
 def response_and_variance_transform(
     input_frame: pl.DataFrame,
     initial_filters: dict[str, str],
@@ -99,5 +118,25 @@ def response_and_variance_transform(
     df = filter_data(input_frame, initial_filters, value_column)
     df = normalize_by_basal(df, basal_filters, normalization_join, value_column)
     df = remove_outliers(df, aggregation_columns, num_std_dev=std_dev_count)
-    df = group_by_and_agg(df, aggregation_columns)
-    return df.select(keep_columns)
+    df = group_by_and_agg(df, aggregation_columns).select(keep_columns)
+
+    summary = summary_score(df)
+    df = df.join(summary, on=["reagent", "Condition"], how="left")
+
+    df = (
+        df.with_columns(
+            (
+                (
+                    pl.col("median")
+                    + pl.col("variance")
+                    + pl.col("cross_celltype_summary_score")
+                )
+                / 3.0
+            ).alias("summary_score")
+        )
+        .drop(["cross_celltype_summary_score"])
+        .sort(by=["summary_score", "median", "variance"], descending=True)
+    )
+
+    return df
+    return df
