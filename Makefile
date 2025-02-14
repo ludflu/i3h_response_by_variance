@@ -1,7 +1,7 @@
-install:
+install: pyproject.toml
 	poetry install
 
-test: install
+pytest: install
 	poetry run pytest
 
 run:

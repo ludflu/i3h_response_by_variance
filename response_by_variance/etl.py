@@ -1,4 +1,3 @@
-
 import polars as pl
 
 
@@ -73,6 +72,18 @@ def group_by_and_agg(df: pl.DataFrame, group_by: list[str]) -> pl.DataFrame:
         .rename({"normalized_value": "variance"})
     )
     return med.join(var, how="inner", on=group_by)
+
+
+def avg_across_cell_populations(
+    df: pl.DataFrame, pivot_value_column: str, output_value_column: str
+) -> pl.DataFrame:
+    unique_populations = df.select(pl.col("population")).unique().to_series().to_list()
+    medpivot = df.pivot(
+        on="population",
+        index=["reagent", "Condition"],
+        values=pivot_value_column,
+    ).with_columns(pl.mean_horizontal(unique_populations).alias(output_value_column))
+    return medpivot.drop(unique_populations)
 
 
 def response_and_variance_transform(

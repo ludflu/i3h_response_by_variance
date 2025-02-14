@@ -1,4 +1,7 @@
-from response_by_variance.etl import response_and_variance_transform
+from response_by_variance.etl import (
+    response_and_variance_transform,
+    avg_across_cell_populations,
+)
 import polars as pl
 import os
 
@@ -48,18 +51,18 @@ def main():
         aggregation_columns,
     )
 
-    med = output_frame.drop("variance")
-
-    medpivot = med.pivot(
-        on="population",
-        index=["reagent", "Condition"],
-        values="median",
-        # aggregate_function=pl.col("median").median(),
+    medpop = avg_across_cell_populations(
+        output_frame, "median", "average_cell_response"
     )
-    # print(medpivot)
+    varpop = avg_across_cell_populations(
+        output_frame, "variance", "average_cell_variance"
+    )
 
-    # write the output to a csv file
-    medpivot.write_csv(f"{output_filepath}/output.csv")
+    response_and_variance = medpop.join(
+        varpop, on=["reagent", "Condition"], how="inner"
+    ).sort(by=["average_cell_response", "average_cell_variance"], descending=True)
+
+    response_and_variance.write_csv(f"{output_filepath}/output.csv")
 
 
 if __name__ == "__main__":
