@@ -112,30 +112,24 @@ def correlation_transform(
     value_column: str,
 ) -> pl.DataFrame:
     responses = (
-        df.drop_nans(value_column)
-        .drop_nulls(correlation_columns)
-        .select(correlation_columns + [value_column])
-        .group_by(correlation_columns)
+        df.group_by(correlation_columns)
         .agg(pl.col(value_column).alias("values"))
+        .with_columns(
+            pl.concat_str(correlation_columns, separator=",").alias("group_key"),
+            pl.col("values").list.len().alias("values_size"),
+        )
+        .drop(correlation_columns)
+        .sort("values_size", descending=False)
     )
-    # breakpoint()
-    # Convert to numpy array and reshape for correlation calculation
-    values_array = np.array([arr.to_numpy() for arr in responses.get_column("values")])
-    print(values_array)
 
-    # these arrays are not the same shape
-    # from this, I infer that not every reagent has a response for every condition
-    # for every cell type for every subject in the population
+    values = [arr.to_list() for arr in responses.get_column("values")]
+    min_len = min(len(v) for v in values)
 
-    # correlation_matrix = np.corrcoef(values_array)
-
-    # # Create a DataFrame with the correlation matrix
-    # correlation_df = pl.DataFrame(
-    #     correlation_matrix,
-    #     schema=[f"correlation_{i}" for i in range(correlation_matrix.shape[0])],
-    # )
-
-    # return correlation_df
+    # can we impute missing values instead of truncating?
+    truncated = [v[:min_len] for v in values]
+    keys = responses.get_column("group_key")
+    response_dict = dict(zip(keys, truncated))
+    return pl.DataFrame(response_dict).corr()
 
 
 def preprocess(
@@ -145,12 +139,15 @@ def preprocess(
     normalization_join: list[str],
     keep_columns: list[str],
     aggregation_columns: list[str],
-    std_dev_count: int = 3,
+    std_dev_count: int,
     value_column: str = "value",
 ):
     df = filter_data(input_frame, initial_filters, value_column)
     df = normalize_by_basal(df, basal_filters, normalization_join, value_column)
-    df = remove_outliers(df, aggregation_columns, num_std_dev=std_dev_count)
+
+    # TODO: remove outliers
+    # This is commented out because it screws up the correlation matrix when too many are missing
+    # df = remove_outliers(df, aggregation_columns, num_std_dev=std_dev_count)
     return df
 
 
@@ -161,10 +158,10 @@ def response_and_variance_transform(
     normalization_join: list[str],
     keep_columns: list[str],
     aggregation_columns: list[str],
-    std_dev_count: int = 3,
+    std_dev_count: int,
     value_column: str = "value",
 ):
-    df = preprocess(
+    preprocessed = preprocess(
         input_frame,
         initial_filters,
         basal_filters,
@@ -174,13 +171,21 @@ def response_and_variance_transform(
         std_dev_count,
         value_column,
     )
-    df = group_by_and_agg(df, aggregation_columns).select(keep_columns)
+    aggregated = group_by_and_agg(preprocessed, aggregation_columns).select(
+        keep_columns
+    )
 
-    summary = summary_score(df)
-    df = df.join(summary, on=["reagent", "Condition"], how="left")
+    cf = correlation_transform(
+        preprocessed,
+        ["reagent", "Condition", "population"],
+        "normalized_value",
+    )
 
-    df = (
-        df.with_columns(
+    summary = summary_score(aggregated)
+    aggregated = aggregated.join(summary, on=["reagent", "Condition"], how="left")
+
+    aggregated = (
+        aggregated.with_columns(
             (
                 (
                     pl.col("median")
@@ -194,4 +199,4 @@ def response_and_variance_transform(
         .sort(by=["summary_score", "median", "variance"], descending=True)
     )
 
-    return df
+    return aggregated
