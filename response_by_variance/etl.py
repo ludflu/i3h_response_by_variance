@@ -1,4 +1,5 @@
 import polars as pl
+import numpy as np
 
 
 def filter_by_group(
@@ -105,7 +106,39 @@ def summary_score(df: pl.DataFrame) -> pl.DataFrame:
     )
 
 
-def response_and_variance_transform(
+def correlation_transform(
+    df: pl.DataFrame,
+    correlation_columns: list[str],
+    value_column: str,
+) -> pl.DataFrame:
+    responses = (
+        df.drop_nans(value_column)
+        .drop_nulls(correlation_columns)
+        .select(correlation_columns + [value_column])
+        .group_by(correlation_columns)
+        .agg(pl.col(value_column).alias("values"))
+    )
+    # breakpoint()
+    # Convert to numpy array and reshape for correlation calculation
+    values_array = np.array([arr.to_numpy() for arr in responses.get_column("values")])
+    print(values_array)
+
+    # these arrays are not the same shape
+    # from this, I infer that not every reagent has a response for every condition
+    # for every cell type for every subject in the population
+
+    # correlation_matrix = np.corrcoef(values_array)
+
+    # # Create a DataFrame with the correlation matrix
+    # correlation_df = pl.DataFrame(
+    #     correlation_matrix,
+    #     schema=[f"correlation_{i}" for i in range(correlation_matrix.shape[0])],
+    # )
+
+    # return correlation_df
+
+
+def preprocess(
     input_frame: pl.DataFrame,
     initial_filters: dict[str, str],
     basal_filters: dict[str, str],
@@ -118,6 +151,29 @@ def response_and_variance_transform(
     df = filter_data(input_frame, initial_filters, value_column)
     df = normalize_by_basal(df, basal_filters, normalization_join, value_column)
     df = remove_outliers(df, aggregation_columns, num_std_dev=std_dev_count)
+    return df
+
+
+def response_and_variance_transform(
+    input_frame: pl.DataFrame,
+    initial_filters: dict[str, str],
+    basal_filters: dict[str, str],
+    normalization_join: list[str],
+    keep_columns: list[str],
+    aggregation_columns: list[str],
+    std_dev_count: int = 3,
+    value_column: str = "value",
+):
+    df = preprocess(
+        input_frame,
+        initial_filters,
+        basal_filters,
+        normalization_join,
+        keep_columns,
+        aggregation_columns,
+        std_dev_count,
+        value_column,
+    )
     df = group_by_and_agg(df, aggregation_columns).select(keep_columns)
 
     summary = summary_score(df)
@@ -138,5 +194,4 @@ def response_and_variance_transform(
         .sort(by=["summary_score", "median", "variance"], descending=True)
     )
 
-    return df
     return df

@@ -9,7 +9,9 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "polars (>=1.21.0,<2.0.0)",
-    "pytest (>=8.3.4,<9.0.0)"
+    "pytest (>=8.3.4,<9.0.0)",
+    "pulp (>=2.9.0,<3.0.0)",
+    "numpy (>=2.2.3,<3.0.0)"
 ]
 
 packages = [
