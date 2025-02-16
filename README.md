@@ -1,8 +1,9 @@
 # I3H Response and Variance ETL Documentation
 
-This library provides functionality for processing and transforming experimental data, particularly focused on normalizing and analyzing response measurements.
+This library provides functionality for processing and transforming experimental data, particularly focused on normalizing and analyzing reagent readouts from Cytometry by time of flight (CyTOF).
+
 Its intended to assist in the design of immune assay panels, by providing a structured way to find combinations of cell types, stimuli and reagent
-readouts that are most informative because they show a robust response and wide variance accross a patient population.
+readouts that are most informative because they show a robust response and wide variance accross a patient population and low correlation with the other selected combinations.
 
 ### Data Filtering
 
