@@ -1,5 +1,6 @@
 import polars as pl
 import numpy as np
+from response_by_variance.optimize import find_best_combos
 
 
 def filter_by_group(
@@ -122,14 +123,18 @@ def correlation_transform(
         .sort("values_size", descending=False)
     )
 
+    # to build the correlation matrix, we need the vectors to be the same length
+    # we can either truncate the vectors to the shortest length, or impute missing values
+    # for now, we will truncate
+
     values = [arr.to_list() for arr in responses.get_column("values")]
     min_len = min(len(v) for v in values)
-
-    # can we impute missing values instead of truncating?
     truncated = [v[:min_len] for v in values]
+
     keys = responses.get_column("group_key")
     response_dict = dict(zip(keys, truncated))
-    return pl.DataFrame(response_dict).corr()
+    corr = pl.DataFrame(response_dict).corr()
+    return corr
 
 
 def preprocess(
@@ -175,11 +180,19 @@ def response_and_variance_transform(
         keep_columns
     )
 
-    cf = correlation_transform(
+    cdf = correlation_transform(
         preprocessed,
-        ["reagent", "Condition", "population"],
+        [
+            "population",
+            "reagent",
+            "Condition",
+        ],
         "normalized_value",
     )
+
+    best_combos = find_best_combos(cdf, aggregated)
+
+    cdf.write_csv("correlation_matrix.csv")
 
     summary = summary_score(aggregated)
     aggregated = aggregated.join(summary, on=["reagent", "Condition"], how="left")
