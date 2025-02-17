@@ -4,19 +4,6 @@ import numpy as np
 import time
 
 
-def convert_to_2d_array(df: pl.DataFrame) -> np.ndarray:
-    columns = df.columns
-    arr = df.to_numpy()
-    xlen, ylen = arr.shape
-    for i in range(xlen):
-        for j in range(ylen):
-            print(f"{columns[i]} x {columns[j]}: {arr[i, j]}")
-    # values = [arr.to_list() for arr in df.get_column("values")]
-    # arr = np.array(values)
-    breakpoint()
-    return arr
-
-
 def find_best_combos(cdf: pl.DataFrame, response_and_variance: pl.DataFrame):
     combo_names = cdf.columns
     correlation_matrix = cdf.to_numpy()
@@ -36,17 +23,11 @@ def find_best_combos(cdf: pl.DataFrame, response_and_variance: pl.DataFrame):
         response_dict[indx] = median
 
     print("setting up the problem...\n")
-    # breakpoint()
-    # Example Data
-    # objects = [1, 2, 3, 4]  # Object IDs
-    # values = {1: 10, 2: 15, 3: 9, 4: 5}  # median response of each object
-    # weights = {1: 4, 2: 8, 3: 5, 4: 3}  # variance of each object
-    # repulsion = {(1, 3): 0.9, (2, 4): 0.3, (3, 4): 0.6}  # Repulsion values (symmetric)
 
     # Parameters for balancing objectives
-    alpha = 1  # Weight for value maximization
-    beta = 0.5  # Weight for weight maximization
-    gamma = 1  # Weight for repulsion effect
+    alpha = 0.5  # Weight for variance maximization
+    beta = 1.0  # Weight for response maximization
+    gamma = 1.0  # Weight for correlation minimization
 
     # Decision variables: x[i] = 1 if object i is selected, 0 otherwise
     x = {i: LpVariable(f"x_{i}", cat="Binary") for i in combo_indices}
@@ -67,19 +48,16 @@ def find_best_combos(cdf: pl.DataFrame, response_and_variance: pl.DataFrame):
         alpha * lpSum(variance_dict[i] * x[i] for i in combo_indices)
         + beta * lpSum(response_dict[i] * x[i] for i in combo_indices)
         -
-        # note we subtract the repulsion in order to minimize it
+        # note we subtract the correlation in order to minimize it
         gamma * lpSum(abs(correlation_matrix[i, j]) * y[i, j] for (i, j) in y)
     )
 
+    # TODO - I don't understand this constraint
     # Constraints to enforce y[i, j] = x[i] * x[j]
     for i, j in y:
         prob += y[i, j] <= x[i]  # y_ij can only be 1 if x_i is 1
         prob += y[i, j] <= x[j]  # y_ij can only be 1 if x_j is 1
         prob += y[i, j] >= x[i] + x[j] - 1  # y_ij = 1 iff both x_i and x_j are 1
-
-    # Optional Constraints:
-    # max_weight = 15  # Example max weight limit
-    # prob += lpSum(weights[i] * x[i] for i in objects) <= max_weight
 
     min_selection = 1  # Minimum number of objects selected
     max_selection = 3  # Maximum number of objects selected
