@@ -43,7 +43,6 @@ def find_best_combos(cdf: pl.DataFrame, response_and_variance: pl.DataFrame):
     # Define the problem
     prob = LpProblem("Maximize_Objective", LpMaximize)
 
-    # Objective function (ignoring attraction, keeping repulsion)
     prob += (
         alpha * lpSum(variance_dict[i] * x[i] for i in combo_indices)
         + beta * lpSum(response_dict[i] * x[i] for i in combo_indices)
