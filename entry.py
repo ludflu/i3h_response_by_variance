@@ -1,4 +1,7 @@
-from response_by_variance.etl import response_and_variance_transform
+from response_by_variance.etl import (
+    response_and_variance_transform,
+    avg_across_cell_populations,
+)
 import polars as pl
 import os
 
@@ -46,7 +49,9 @@ def main():
         normalization_join,
         keep_columns,
         aggregation_columns,
+        std_dev_count=4,
     )
+
     output_frame.write_csv(f"{output_filepath}/output.csv")
 
 

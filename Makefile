@@ -1,7 +1,7 @@
-install:
+install: pyproject.toml
 	poetry install
 
-test: install
+pytest: install
 	poetry run pytest
 
 run:
@@ -10,3 +10,8 @@ run:
 docker-build:
 	docker build -t ludflu/i3h-response-and-variance .
 	docker push ludflu/i3h-response-and-variance
+
+test:
+	INPUT_DIR=data_testing/input \
+	OUTPUT_DIR=data_testing/output \
+	poetry run python entry.py
