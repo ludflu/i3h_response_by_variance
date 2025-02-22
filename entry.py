@@ -49,7 +49,7 @@ def main():
         normalization_join,
         keep_columns,
         aggregation_columns,
-        std_dev_count=3,
+        std_dev_count=4,
     )
 
     output_frame.write_csv(f"{output_filepath}/output.csv")

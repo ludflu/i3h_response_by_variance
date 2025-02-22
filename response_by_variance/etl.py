@@ -88,6 +88,7 @@ def avg_across_cell_populations(
     return medpivot.drop(unique_populations)
 
 
+# TODO this needs to be validated
 def summary_score(df: pl.DataFrame) -> pl.DataFrame:
     medpop = avg_across_cell_populations(df, "median", "average_cell_response")
     varpop = avg_across_cell_populations(df, "variance", "average_celltype_variance")
@@ -149,10 +150,7 @@ def preprocess(
 ):
     df = filter_data(input_frame, initial_filters, value_column)
     df = normalize_by_basal(df, basal_filters, normalization_join, value_column)
-
-    # TODO: remove outliers
-    # This is commented out because it screws up the correlation matrix when too many are missing
-    # df = remove_outliers(df, aggregation_columns, num_std_dev=std_dev_count)
+    df = remove_outliers(df, aggregation_columns, num_std_dev=std_dev_count)
     return df
 
 
@@ -190,26 +188,28 @@ def response_and_variance_transform(
         "normalized_value",
     )
 
-    best_combos = find_best_combos(cdf, aggregated)
-
     cdf.write_csv("correlation_matrix.csv")
 
-    summary = summary_score(aggregated)
-    aggregated = aggregated.join(summary, on=["reagent", "Condition"], how="left")
+    # TODO: prove that this optimization is actually working by writing a test with some generated sample data
+    # best_combos = find_best_combos(cdf, aggregated)
 
-    aggregated = (
-        aggregated.with_columns(
-            (
-                (
-                    pl.col("median")
-                    + pl.col("variance")
-                    + pl.col("cross_celltype_summary_score")
-                )
-                / 3.0
-            ).alias("summary_score")
-        )
-        .drop(["cross_celltype_summary_score"])
-        .sort(by=["summary_score", "median", "variance"], descending=True)
-    )
+    # TODO cross celltype summary score has not been validated
+    # summary = summary_score(aggregated)
+    # aggregated = aggregated.join(summary, on=["reagent", "Condition"], how="left")
+
+    # aggregated = (
+    #     aggregated.with_columns(
+    #         (
+    #             (
+    #                 pl.col("median")
+    #                 + pl.col("variance")
+    #                 + pl.col("cross_celltype_summary_score")
+    #             )
+    #             / 3.0
+    #         ).alias("summary_score")
+    #     )
+    #     .drop(["cross_celltype_summary_score"])
+    #     .sort(by=["summary_score", "median", "variance"], descending=True)
+    # )
 
     return aggregated

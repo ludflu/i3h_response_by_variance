@@ -3,6 +3,8 @@ import polars as pl
 import numpy as np
 import time
 
+import pulp
+
 
 def find_best_combos(cdf: pl.DataFrame, response_and_variance: pl.DataFrame):
     combo_names = cdf.columns
@@ -24,10 +26,13 @@ def find_best_combos(cdf: pl.DataFrame, response_and_variance: pl.DataFrame):
 
     print("setting up the problem...\n")
 
+    # Set CBC solver path
+    pulp.COIN_CMD(path="/opt/homebrew/bin/cbc")
+
     # Parameters for balancing objectives
     alpha = 0.5  # Weight for variance maximization
     beta = 1.0  # Weight for response maximization
-    gamma = 1.0  # Weight for correlation minimization
+    gamma = 5.0  # Weight for correlation minimization (larger because correlation is -1 to 1)
 
     # Decision variables: x[i] = 1 if object i is selected, 0 otherwise
     x = {i: LpVariable(f"x_{i}", cat="Binary") for i in combo_indices}
@@ -37,7 +42,7 @@ def find_best_combos(cdf: pl.DataFrame, response_and_variance: pl.DataFrame):
         (i, j): LpVariable(f"y_{i}_{j}", cat="Binary")
         for i in combo_indices
         for j in combo_indices
-        if i < j
+        if i != j and x[i] == 1 and x[j] == 1
     }
 
     # Define the problem
@@ -59,7 +64,7 @@ def find_best_combos(cdf: pl.DataFrame, response_and_variance: pl.DataFrame):
         prob += y[i, j] >= x[i] + x[j] - 1  # y_ij = 1 iff both x_i and x_j are 1
 
     min_selection = 1  # Minimum number of objects selected
-    max_selection = 3  # Maximum number of objects selected
+    max_selection = 10  # Maximum number of objects selected
     prob += lpSum(x[i] for i in combo_indices) >= min_selection
     prob += lpSum(x[i] for i in combo_indices) <= max_selection
 
@@ -67,7 +72,8 @@ def find_best_combos(cdf: pl.DataFrame, response_and_variance: pl.DataFrame):
     print("solving... (this may take a while)\n")
     print(f"start time: {start_time}")
     # Solve the problem and time it
-    prob.solve()
+    solver = pulp.getSolver("COIN_CMD")
+    prob.solve(solver)
     elapsed_time = time.time() - start_time
     print(f"done solving (took {elapsed_time:.2f} seconds)\n")
     # Output results
