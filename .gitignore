@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.env
+.venv
+ENV/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Project specific
+data/output/correlation_*.csv
+data/output/correlation_*.png
+data/output/*.csv
+data/output/*.png
+data/output/correlations/*.csv
+data/output/correlations/*.png
+
+# Dependencies
+poetry.lock
+
+# Local development
+dev.env

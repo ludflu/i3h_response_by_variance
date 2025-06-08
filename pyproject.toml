@@ -1,27 +1,47 @@
+# Project configuration for Immune Health Response Analysis
+# This file defines project metadata, dependencies, and build settings
+
 [project]
+# Basic project information
 name = "response_by_variance"
 version = "0.1.0"
-description = ""
+description = "Analysis of immune response data with focus on variance and correlation"
 authors = [
-    {name = "Jim Snavely",email = "ludflu@gmail.com"}
+    {name = "Jim Snavely", email = "ludflu@gmail.com"},
+    {name = "Jen Shi", email = "jenzshi@seas.upenn.edu"}
 ]
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11"  # Minimum Python version required
+
+# Project dependencies with version constraints:
+# - polars: Fast DataFrame library for data processing
+# - pytest: Testing framework
+# - pulp: Linear programming for optimization
+# - numpy: Numerical computing
+# - pandas: Data manipulation (used alongside polars)
+# - matplotlib: Plotting library
+# - seaborn: Statistical data visualization
+# - pyarrow: Arrow format support for efficient data storage
 dependencies = [
     "polars (>=1.21.0,<2.0.0)",
     "pytest (>=8.3.4,<9.0.0)",
     "pulp (>=2.9.0,<3.0.0)",
-    "numpy (>=2.2.3,<3.0.0)",
-    "pandas (>=2.2.3,<3.0.0)"
+    "numpy (>=1.24.0,<2.0.0)",
+    "pandas (>=2.2.3,<3.0.0)",
+    "matplotlib (>=3.7.0,<4.0.0)",
+    "seaborn (>=0.12.0,<1.0.0)",
+    "pyarrow (>=14.0.0,<15.0.0)"
 ]
 
+# Package configuration
 packages = [
-    { include = "response_by_variance_etl" },
+    { include = "response_by_variance" }  # Include the main package
 ]
 
+# Build system configuration
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=2.0.0,<3.0.0"]  # Poetry version requirements
+build-backend = "poetry.core.masonry.api"  # Use Poetry's build backend
 
 
 

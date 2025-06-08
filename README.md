@@ -2,63 +2,102 @@
 
 This library provides functionality for processing and transforming experimental data, particularly focused on normalizing and analyzing reagent readouts from Cytometry by time of flight (CyTOF).
 
-Its intended to assist in the design of immune assay panels, by providing a structured way to find combinations of cell types, stimuli and reagent
-readouts that are most informative because they show a robust response, wide variance accross a patient population and low correlation with the other selected combinations.
+It assists in the design of immune assay panels by providing a structured way to find combinations of cell types, stimuli, and reagent readouts that are most informative because they show:
+- Robust response
+- Wide variance across a patient population
+- Low correlation with other selected combinations
 
-### Data Filtering
+## Package Structure
 
-- `filter_by_group(df, by_filter_columns)`: Filter dataframe rows matching specified column values
-- `filter_by_group_negate(df, by_filter_columns)`: Filter dataframe rows NOT matching specified column values
-- `filter_data(df, initial_filters)`: Filter data and remove NaN values
+The package is organized into the following modules:
+
+### ETL Module (`response_by_variance/etl/`)
+- `filtering.py`: Data filtering and cleaning operations
+- `normalization.py`: Data normalization functions
+- `processing.py`: Core data processing functions
+- `correlation.py`: Correlation analysis utilities
+
+### Optimization Module (`response_by_variance/optimize/`)
+- `indices.py`: Index calculation and management
+- `panels.py`: Panel optimization algorithms
+- `pivots.py`: Data pivoting and transformation utilities
+
+### Utilities Module (`response_by_variance/utils/`)
+- `io.py`: Input/output operations and file handling
+
+## Key Features
 
 ### Data Processing
+- Filter and clean experimental data
+- Remove outliers based on statistical measures
+- Normalize values against baseline measurements
+- Calculate group statistics and variance metrics
 
-- `remove_outliers(df, by_grouping_columns, num_std_dev)`: Remove outliers based on standard deviation within groups
-- `normalize_by_basal(df, basal_filters, normalization_join)`: Normalize values by subtracting baseline measurements
-- `group_by_and_agg(df, group_by)`: Group data and calculate median and variance statistics
+### Optimization
+- Panel combination optimization
+- Correlation analysis
+- Response and variance scoring
+- Population-level analysis
 
-### Main Transform Pipeline
+## Installation
 
-`response_and_variance_transform()` combines the above functions into a complete pipeline:
-
-1. Filters initial data
-2. Normalizes against baseline measurements
-3. Removes outliers
-4. Calculates group statistics
-
-## Running Tests
-
-You can run the pytest with the following command:
-
-```
-make test
-```
-
-## Docker Image
-
-You can build a docker image with the following command:
-
-```
+### Using Docker
+```bash
+# Build the Docker image
 make docker-build
-```
 
-pull the latest image from docker hub with the following command:
-
-```
+# Pull the latest image
 docker pull ludflu/i3h-response-and-variance
 ```
 
-### Immune Atlas Hackathon Team
+### Local Development
+```bash
+# Install dependencies
+poetry install
 
-This work came out of the Immune Atlas Hackathon Team
-at the The Immune Health Hackathon 2025. Sponsored by:
+# Run tests
+make test
+```
+
+## Usage
+
+The package can be used both as a library and through the command-line interface:
+
+```python
+from response_by_variance.etl import filtering, normalization
+from response_by_variance.optimize import panels, indices
+
+# Process your data
+filtered_data = filtering.filter_data(df, initial_filters)
+normalized_data = normalization.normalize_by_basal(filtered_data, basal_filters)
+
+# Optimize panel combinations
+optimized_panels = panels.optimize_panels(normalized_data)
+```
+
+## Testing
+
+Run the test suite with:
+```bash
+make test
+```
+
+## Contributing
+
+1. Create a new branch for your feature
+2. Make your changes
+3. Run tests to ensure everything works
+4. Submit a pull request
+
+## Team
+
+This work came out of the Immune Atlas Hackathon Team at the The Immune Health Hackathon 2025. Sponsored by:
 
 - The Colton Consortium
 - The Institute for Immunology and Immune Health (I3H)
 - Penn Institute for Biomedical Informatics
 
 ### Team Members
-
 - Seljuq Haider
 - Kelvin Koser
 - Jen Shi

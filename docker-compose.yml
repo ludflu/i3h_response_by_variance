@@ -1,11 +1,21 @@
+# Docker Compose configuration for Immune Health Response Analysis
+# This file defines the service configuration for running the application in a container
+
 services:
+  # Main application service
   app:
+    # Build configuration
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: .  # Use current directory as build context
+      dockerfile: Dockerfile  # Use the specified Dockerfile
+    # Load environment variables from dev.env file
     env_file:
       - dev.env
+    # Mount volumes for development:
+    # - Mount current directory to /app for live code updates
+    # - Mount data_testing directory to /service/data for test data
     volumes:
       - .:/app
       - ./data_testing:/service/data
-    working_dir: /app
+    # Set working directory inside container
+    working_dir: /usr/app
